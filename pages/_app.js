@@ -1,5 +1,6 @@
 import { createGlobalStyle, ThemeProvider } from 'styled-components'
 import { AlurakutStyles } from '../src/lib/AlurakutCommons'
+
 const GlobalStyle = createGlobalStyle`
 
   * {
@@ -10,7 +11,10 @@ const GlobalStyle = createGlobalStyle`
 
   body {
     font-family: sans-serif;
-    background:#D9E6F6
+    background-repeat: no-repeat;
+    background-position: left;
+    background-size: cover;
+    background-image:  url("https://images.alphacoders.com/989/thumb-1920-989335.png")
   }
   #__next {
     display: flex;
