@@ -8,6 +8,8 @@ import {
 } from "../src/lib/AlurakutCommons";
 import { ProfileRelationsBoxWrapper } from "../src/components/ProfilesRelations";
 import React from "react";
+import { request } from "../src/lib/datocms";
+
 
 
 function ProfileSidebar(propriedades) {
@@ -33,24 +35,106 @@ function ProfileSidebar(propriedades) {
   );
 }
 
-export default function Home() {
-  
+function ProfileRelationsBox(propriedades){
+  return(
+    <ProfileRelationsBoxWrapper>
+    <h2 className="smallTitle">
+      {propriedades.title} ({propriedades.items.length})
+      </h2>
+    <ul>
+      {console.log(propriedades)}
+        {propriedades.items.map((itemAtual,index) => {
+          if(index <= 5){
+          return (
+            <li id={itemAtual.id} key={itemAtual.id} >
+              <a href={`https://${itemAtual.html_url}`} >
+              <img src={itemAtual.avatar_url} /> 
+                <span>{itemAtual.login}</span>
+              </a>
+            </li>
+          );
+          }
+        })}
+      </ul>
+    </ProfileRelationsBoxWrapper>
+  );
+}
+
+export default function Home({ data }) {
+ 
   const githubUser = "raphaom35";
-  const [comunidades,setComunidades]=React.useState([{
-    id:'2837837837822',
-    title:'Eu odeio acordar cedo',img:'https://alurakut.vercel.app/capa-comunidade-01.jpg'
-  }]);
-  const pessoasFavoritas = [
-    "juunegreiros",
-    "omariosouto",
-    "rafaballerini",
-    "GabrielDiasGoncalves",
-    "Ceelo17",
-    "GuilhermeGDGP",
-  ];
+  const [comunidades,setComunidades]=React.useState([{}]);
+  const [pessoasFavoritas,setpessoasFavoritas] = React.useState([{}]);
+  function getComunidades(){
+    const token = '0a3eef5572144d5c22d03a7ee5d3b4';
+    fetch(
+      'https://graphql.datocms.com/',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          query: '{ allCommunities { id title imageUrl _status _firstPublishedAt }_allCommunitiesMeta { count }}'
+        }),
+      }
+    )
+    .then(res => res.json())
+    .then((res) => {
+      setComunidades(res.data.allCommunities);
+      console.log(res.data.allCommunities);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+  }
   
+  function getProfilesFavoritos(){
+    const token = '0a3eef5572144d5c22d03a7ee5d3b4';
+    fetch(
+      'https://graphql.datocms.com/',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          query: '{allFavoritepeople { id name _status _firstPublishedAt}_allFavoritepeopleMeta {count}}'
+        }),
+      }
+    )
+    .then(res => res.json())
+    .then((res) => {
+      setpessoasFavoritas(res.data.allFavoritepeople);
+      console.log(res.data.allFavoritepeople);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+  }
+  const [seguidores, setSeguidores] = React.useState([]);
+  React.useEffect(function() {
+    getComunidades();
+    getProfilesFavoritos();
+  }, [])
+  // 0 - Pegar o array de dados do github 
+  React.useEffect(function() {
+    fetch(`https://api.github.com/users/${githubUser}/followers`)
+    .then(function (respostaDoServidor) {
+      return respostaDoServidor.json();
+    })
+    .then(function(respostaCompleta) {
+      console.log(respostaCompleta)
+      setSeguidores(respostaCompleta);
+    })
+  }, [])
 
   return (
+    
     <>
       <AlurakutMenu githubUser={githubUser} />
       <MainGrid>
@@ -113,32 +197,40 @@ export default function Home() {
             </h2>
 
             <ul>
-              {pessoasFavoritas.map((itemAtual) => {
+              {pessoasFavoritas.map((itemAtual,index) => {
+                if(index <= 5){
                 return (
-                  <li key={itemAtual}>
-                    <a href={`/users/${itemAtual}`} >
-                      <img src={`https://github.com/${itemAtual}.png`} />
-                      <span>{itemAtual}</span>
+                  <li key={itemAtual.id}>
+                    <a href={`/users/${itemAtual.name}`} >
+                      <img src={`https://github.com/${itemAtual.name}.png`} />
+                      <span>{itemAtual.name}</span>
                     </a>
                   </li>
                 );
+                }
               })}
             </ul>
           </ProfileRelationsBoxWrapper>
+
+          {/* <ProfileRelationsBox title="Pessoas da comunidade" items={pessoasFavoritas} /> */}
+          <ProfileRelationsBox title="Seguidores" items={seguidores} />
+          {/* <ProfileRelationsBox title="Minhas comunidades" items={comunidades} /> */}
           <ProfileRelationsBoxWrapper>
           <h2 className="smallTitle">
           Minhas comunidades ({comunidades.length})
             </h2>
           <ul>
-              {comunidades.map((itemAtual) => {
+              {comunidades.map((itemAtual,index) => {
+                 if(index <= 5){
                 return (
                   <li id={itemAtual.id} key={itemAtual.id} >
                     <a href={`/users/${itemAtual.title}`} >
-                    <img src={itemAtual.img} /> 
+                    <img src={itemAtual.imageUrl} /> 
                       <span>{itemAtual.title}</span>
                     </a>
                   </li>
                 );
+                 }
               })}
             </ul>
           </ProfileRelationsBoxWrapper>
