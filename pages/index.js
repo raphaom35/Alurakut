@@ -42,7 +42,7 @@ function ProfileRelationsBox(propriedades){
       {propriedades.title} ({propriedades.items.length})
       </h2>
     <ul>
-      {console.log(propriedades)}
+      {/* {console.log(propriedades)} */}
         {propriedades.items.map((itemAtual,index) => {
           if(index <= 5){
           return (
@@ -77,14 +77,14 @@ export default function Home({ data }) {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          query: '{ allCommunities { id title imageUrl _status _firstPublishedAt }_allCommunitiesMeta { count }}'
+          query: '{ allCommunities { id title imageUrl _status creatorSlug _firstPublishedAt }_allCommunitiesMeta { count }}'
         }),
       }
     )
     .then(res => res.json())
     .then((res) => {
       setComunidades(res.data.allCommunities);
-      console.log(res.data.allCommunities);
+       console.log(res.data.allCommunities);
     })
     .catch((error) => {
       console.log(error);
@@ -110,17 +110,16 @@ export default function Home({ data }) {
     .then(res => res.json())
     .then((res) => {
       setpessoasFavoritas(res.data.allFavoritepeople);
-      console.log(res.data.allFavoritepeople);
+       
     })
     .catch((error) => {
       console.log(error);
     });
   }
   const [seguidores, setSeguidores] = React.useState([]);
-  React.useEffect(function() {
-    getComunidades();
-    getProfilesFavoritos();
-  }, [])
+ /*  React.useEffect(function() {
+    
+  }, []) */
   // 0 - Pegar o array de dados do github 
   React.useEffect(function() {
     fetch(`https://api.github.com/users/${githubUser}/followers`)
@@ -128,9 +127,11 @@ export default function Home({ data }) {
       return respostaDoServidor.json();
     })
     .then(function(respostaCompleta) {
-      console.log(respostaCompleta)
+      /* console.log(respostaCompleta) */
       setSeguidores(respostaCompleta);
     })
+    getComunidades();
+    getProfilesFavoritos();
   }, [])
 
   return (
@@ -151,12 +152,27 @@ export default function Home({ data }) {
               e.preventDefault();
               const dadosDoForm = new FormData(e.target);
               const comunidade ={
-                id:new Date().toISOString(),
-                title:dadosDoForm.get('title'),
-                img:dadosDoForm.get('image'),
+                title: dadosDoForm.get('title'),
+                  imageUrl: dadosDoForm.get('image'),
+                  creatorSlug: githubUser,
               }
-              const comunidadesAtualizadas=[...comunidades,comunidade];
-              setComunidades(comunidadesAtualizadas);             
+              console.log(comunidade);
+              fetch('/api/comunidades', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(comunidade)
+              })
+              .then(async (response) => {
+                const dados = await response.json();
+                console.log(dados.registroCriado);
+                const comunidade = dados.registroCriado;
+                const comunidadesAtualizadas = [...comunidades, comunidade];
+                setComunidades(comunidadesAtualizadas)
+                dadosDoForm.set('image', "");
+                dadosDoForm.set('title', "");
+              })           
             }}>
             <div>
               <input
@@ -201,7 +217,7 @@ export default function Home({ data }) {
                 if(index <= 5){
                 return (
                   <li key={itemAtual.id}>
-                    <a href={`/users/${itemAtual.name}`} >
+                    <a href={`/communities/${itemAtual.name}`} >
                       <img src={`https://github.com/${itemAtual.name}.png`} />
                       <span>{itemAtual.name}</span>
                     </a>
