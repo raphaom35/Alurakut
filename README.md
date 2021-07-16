@@ -14,7 +14,7 @@ Application created copy Orkut
 </p>
 
 <div align="center">
-<img src="/alurakut.PNG" width="550" />
+<img src="/alurakut.gif" width="550" />
 
 </div>
 
