@@ -431,7 +431,7 @@ const AlurakutLoginScreen = css`
           border: 0;
           padding: 12px;
           border-radius: var(--commonRadius);
-          background-color: var(--colorPrimary);
+          background-color: #001ca7;
           color: var(--textSecondaryColor);
         }
       }

@@ -1,4 +1,7 @@
 import { useState } from "react";
+import nookies from 'nookies';
+import axios from 'axios';
+import jwt from 'jsonwebtoken';
 import MainGrid from "../src/components/MainGrid";
 import Box from "../src/components/Box";
 import {
@@ -9,6 +12,8 @@ import {
 import { ProfileRelationsBoxWrapper } from "../src/components/ProfilesRelations";
 import React from "react";
 import { request } from "../src/lib/datocms";
+
+
 
 
 
@@ -60,9 +65,9 @@ function ProfileRelationsBox(propriedades){
   );
 }
 
-export default function Home({ data }) {
+export default function Home(props) {
  
-  const githubUser = "raphaom35";
+  const githubUser =  props.githubUser;
   const [comunidades,setComunidades]=React.useState([{}]);
   const [pessoasFavoritas,setpessoasFavoritas] = React.useState([{}]);
   function getComunidades(){
@@ -259,4 +264,30 @@ export default function Home({ data }) {
       </MainGrid>
     </>
   );
+}
+export async function getServerSideProps(context) {
+  const cookies = nookies.get(context)
+  const token = cookies.USER_TOKEN;
+  const { isAuthenticated } = await fetch('https://alurakut.vercel.app/api/auth', {
+    headers: {
+        Authorization: token
+      }
+  })
+  .then((resposta) => resposta.json())
+
+  /* if(!isAuthenticated) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      }
+    }
+  }
+  console.log(isAuthenticated); */
+  const { githubUser } = jwt.decode(token);
+  return {
+    props: {
+      githubUser
+    }, // will be passed to the page component as props
+  }
 }
